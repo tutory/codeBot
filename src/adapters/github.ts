@@ -72,6 +72,10 @@ const isRetryableFetchError = (error: unknown): boolean => {
   return false;
 };
 
+const isHttpStatusError = (error: unknown, status: number): boolean =>
+  error instanceof Error &&
+  error.message.includes(`failed: ${status}`);
+
 export class GitHubClient {
   readonly #baseUrl: string;
   readonly #headers: Headers;
@@ -264,16 +268,22 @@ export class GitHubClient {
   async listFailingChecks(ref: string): Promise<string[]> {
     const failures = new Set<string>();
 
-    const checkRunsPayload = await this.request<CheckRunsPayload>(
-      "GET",
-      `/commits/${ref}/check-runs?per_page=100`
-    );
-    for (const checkRun of checkRunsPayload.check_runs ?? []) {
-      const conclusion = checkRun.conclusion ?? "";
-      if (["failure", "timed_out", "cancelled", "startup_failure", "action_required"].includes(conclusion)) {
-        failures.add(
-          checkRun.html_url ? `${checkRun.name}: ${checkRun.html_url}` : checkRun.name
-        );
+    try {
+      const checkRunsPayload = await this.request<CheckRunsPayload>(
+        "GET",
+        `/commits/${ref}/check-runs?per_page=100`
+      );
+      for (const checkRun of checkRunsPayload.check_runs ?? []) {
+        const conclusion = checkRun.conclusion ?? "";
+        if (["failure", "timed_out", "cancelled", "startup_failure", "action_required"].includes(conclusion)) {
+          failures.add(
+            checkRun.html_url ? `${checkRun.name}: ${checkRun.html_url}` : checkRun.name
+          );
+        }
+      }
+    } catch (error) {
+      if (!isHttpStatusError(error, 403)) {
+        throw error;
       }
     }
 
