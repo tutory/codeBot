@@ -287,15 +287,21 @@ export class GitHubClient {
       }
     }
 
-    const statusPayload = await this.request<StatusPayload>(
-      "GET",
-      `/commits/${ref}/status`
-    );
-    for (const status of statusPayload.statuses ?? []) {
-      if (["failure", "error"].includes(status.state)) {
-        failures.add(
-          status.target_url ? `${status.context}: ${status.target_url}` : status.context
-        );
+    try {
+      const statusPayload = await this.request<StatusPayload>(
+        "GET",
+        `/commits/${ref}/status`
+      );
+      for (const status of statusPayload.statuses ?? []) {
+        if (["failure", "error"].includes(status.state)) {
+          failures.add(
+            status.target_url ? `${status.context}: ${status.target_url}` : status.context
+          );
+        }
+      }
+    } catch (error) {
+      if (!isHttpStatusError(error, 403)) {
+        throw error;
       }
     }
 

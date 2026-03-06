@@ -460,7 +460,18 @@ export class AutonomousWorker {
       }
       const issue = issueByNumber.get(issueNumber);
       const targetIssue = issue ?? await this.deps.github.getIssue(issueNumber);
-      const worktree = this.deps.git.worktreePath(record.branchName);
+      this.deps.git.refreshBranch(record.branchName);
+      const worktree = this.deps.git.createWorktree(
+        record.branchName,
+        this.config.githubBaseBranch,
+      );
+      if (this.deps.git.resetWorktreeToRemoteBranch(worktree, record.branchName)) {
+        this.deps.logger.debug(
+          "Reset branch %s to origin/%s before applying PR feedback",
+          record.branchName,
+          record.branchName,
+        );
+      }
       const actionComments = unseen.filter((comment) => this.isActionCommand(comment));
       const normalComments = unseen.filter((comment) => !this.isActionCommand(comment));
 
