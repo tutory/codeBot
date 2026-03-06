@@ -205,6 +205,14 @@ export class AutonomousWorker {
       this.config.githubBaseBranch,
     );
     this.deps.git.refreshBase(this.config.githubBaseBranch);
+    this.deps.git.refreshBranch(record.branchName);
+    if (this.deps.git.resetWorktreeToRemoteBranch(worktree, record.branchName)) {
+      this.deps.logger.debug(
+        "Reset branch %s to origin/%s before action command",
+        record.branchName,
+        record.branchName,
+      );
+    }
 
     if (command === "rebase+reorganize") {
       this.deps.logger.info(
@@ -627,6 +635,14 @@ export class AutonomousWorker {
         record.branchName,
         this.config.githubBaseBranch,
       );
+      this.deps.git.refreshBranch(record.branchName);
+      if (this.deps.git.resetWorktreeToRemoteBranch(worktree, record.branchName)) {
+        this.deps.logger.debug(
+          "Reset branch %s to origin/%s before addressing failing checks",
+          record.branchName,
+          record.branchName,
+        );
+      }
       const failingCheckComments = failures.map((failure, index) => ({
         id: Number(`9${record.prNumber}${index}`),
         body: `CI failure: ${failure}`,
@@ -694,6 +710,7 @@ export class AutonomousWorker {
     this.deps.logger.info("Resuming issue #%d: %s", issue.number, issue.title);
     this.deps.logger.debug("Using existing branch %s", record.branchName);
     this.deps.git.refreshBase(this.config.githubBaseBranch);
+    this.deps.git.refreshBranch(record.branchName);
     this.deps.logger.debug(
       "Fetched latest base branch %s",
       this.config.githubBaseBranch,
@@ -702,6 +719,13 @@ export class AutonomousWorker {
       record.branchName,
       this.config.githubBaseBranch,
     );
+    if (this.deps.git.resetWorktreeToRemoteBranch(worktree, record.branchName)) {
+      this.deps.logger.debug(
+        "Reset branch %s to origin/%s before resuming work",
+        record.branchName,
+        record.branchName,
+      );
+    }
     this.deps.logger.info("Using worktree at %s", worktree);
     this.deps.logger.info("Running solver command for issue #%d", issue.number);
     this.deps.solver.run({ repoPath: worktree, branchName: record.branchName, issue });

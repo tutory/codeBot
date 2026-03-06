@@ -9,6 +9,19 @@ const runGit = (repoPath: string, args: readonly string[], cwd = repoPath): stri
     stdio: ["ignore", "pipe", "pipe"]
   }).trim();
 
+const tryRunGit = (repoPath: string, args: readonly string[], cwd = repoPath): boolean => {
+  try {
+    execFileSync("git", args, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 type WorktreeRecord = {
   path: string;
   branch?: string;
@@ -53,6 +66,10 @@ export class GitRepository {
 
   refreshBase(baseBranch: string): void {
     runGit(this.repoPath, ["fetch", "origin", baseBranch]);
+  }
+
+  refreshBranch(branchName: string): void {
+    runGit(this.repoPath, ["fetch", "origin", branchName]);
   }
 
   worktreePath(branchName: string): string {
@@ -107,6 +124,20 @@ export class GitRepository {
 
   rebaseOntoBase(cwd: string, baseBranch: string): void {
     runGit(this.repoPath, ["rebase", `origin/${baseBranch}`], cwd);
+  }
+
+  resetWorktreeToRemoteBranch(cwd: string, branchName: string): boolean {
+    const hasRemoteBranch = tryRunGit(
+      this.repoPath,
+      ["show-ref", "--verify", "--quiet", `refs/remotes/origin/${branchName}`],
+      cwd,
+    );
+    if (!hasRemoteBranch) {
+      return false;
+    }
+    runGit(this.repoPath, ["reset", "--hard", `origin/${branchName}`], cwd);
+    runGit(this.repoPath, ["clean", "-fd"], cwd);
+    return true;
   }
 
   removeWorktree(branchName: string): void {
