@@ -227,6 +227,7 @@ export class AutonomousWorker {
       this.deps.solver.run({
         repoPath: worktree,
         branchName: record.branchName,
+        model: this.config.model,
         issue,
         reviewComments: comment ? [comment] : [],
         action: "reorganize",
@@ -263,6 +264,7 @@ export class AutonomousWorker {
       this.deps.solver.run({
         repoPath: worktree,
         branchName: record.branchName,
+        model: this.config.model,
         issue,
         reviewComments: comment ? [comment] : [],
         action: "reorganize",
@@ -530,6 +532,7 @@ export class AutonomousWorker {
         this.deps.solver.run({
           repoPath: worktree,
           branchName: record.branchName,
+          model: this.config.model,
           issue: targetIssue,
           reviewComments: normalComments,
         });
@@ -672,6 +675,7 @@ export class AutonomousWorker {
         this.deps.solver.run({
           repoPath: worktree,
           branchName: record.branchName,
+          model: this.config.model,
           issue: targetIssue,
           reviewComments: failingCheckComments,
         });
@@ -739,7 +743,12 @@ export class AutonomousWorker {
     }
     this.deps.logger.info("Using worktree at %s", worktree);
     this.deps.logger.info("Running solver command for issue #%d", issue.number);
-    this.deps.solver.run({ repoPath: worktree, branchName: record.branchName, issue });
+    this.deps.solver.run({
+      repoPath: worktree,
+      branchName: record.branchName,
+      model: this.config.model,
+      issue,
+    });
     this.deps.logger.info("Solver finished for issue #%d", issue.number);
 
     if (!this.deps.git.hasChanges(worktree) && record.prNumber === undefined && this.config.dryRun) {
@@ -767,7 +776,12 @@ export class AutonomousWorker {
     );
     this.deps.logger.info("Created worktree at %s", worktree);
     this.deps.logger.info("Running solver command for issue #%d", issue.number);
-    this.deps.solver.run({ repoPath: worktree, branchName, issue });
+    this.deps.solver.run({
+      repoPath: worktree,
+      branchName,
+      model: this.config.model,
+      issue,
+    });
     this.deps.logger.info("Solver finished for issue #%d", issue.number);
 
     const record: TaskRecord = {

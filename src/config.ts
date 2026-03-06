@@ -66,6 +66,7 @@ export type Config = {
   repoPath: string;
   dryRun: boolean;
   pollSeconds: number;
+  model: string;
   solverCommand: string;
   stateFile: string;
 };
@@ -93,6 +94,7 @@ export const loadConfig = (): Config => {
     repoPath: path.resolve(requireEnv("CODEBOT_REPO_PATH")),
     dryRun: readBoolean("CODEBOT_DRY_RUN", true),
     pollSeconds: Number.parseInt(process.env.CODEBOT_POLL_SECONDS || "300", 10),
+    model: process.env.CODEBOT_MODEL?.trim() || "gpt-5.4",
     solverCommand: requireEnv("CODEBOT_SOLVER_COMMAND"),
     stateFile: path.resolve(process.env.CODEBOT_STATE_FILE || ".codebot/state.json")
   };

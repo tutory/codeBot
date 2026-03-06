@@ -19,6 +19,7 @@ const issueUrl = required("CODEBOT_ISSUE_URL");
 const repoPath = required("CODEBOT_REPO_PATH");
 const workspacePath = required("CODEBOT_WORKSPACE_PATH");
 const branchName = required("CODEBOT_BRANCH_NAME");
+const model = required("CODEBOT_MODEL");
 const action = process.env.CODEBOT_ACTION?.trim() || "solve";
 const reviewComments = JSON.parse(process.env.CODEBOT_REVIEW_COMMENTS_JSON ?? "[]");
 const styleGuidePath = path.join(workspacePath, "CODEBOT_STYLE.md");
@@ -43,6 +44,7 @@ const runContext = {
   issueUrl,
   repoPath,
   branchName,
+  model,
   reviewComments,
   createdAt: new Date().toISOString()
 };
@@ -119,6 +121,7 @@ const prompt = promptSections.join("\n");
 console.log(`[solver] Prepared issue #${issueNumber}: ${issueTitle}`);
 console.log(`[solver] Target repo: ${repoPath}`);
 console.log(`[solver] Branch: ${branchName}`);
+console.log(`[solver] Model: ${model}`);
 console.log(`[solver] Action: ${action}`);
 console.log(`[solver] Review comments: ${reviewComments.length}`);
 console.log(`[solver] Style guide: ${resolvedStyleGuidePath ?? "not found"}`);
@@ -132,6 +135,8 @@ const result = spawnSync(
   action === "reorganize"
     ? [
         "exec",
+        "-m",
+        model,
         "--dangerously-bypass-approvals-and-sandbox",
         "--cd",
         repoPath,
@@ -139,6 +144,8 @@ const result = spawnSync(
       ]
     : [
         "exec",
+        "-m",
+        model,
         "--full-auto",
         "--cd",
         repoPath,

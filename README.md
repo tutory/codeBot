@@ -79,6 +79,7 @@ Why these are needed:
 
 The bot does not hardcode one model runtime. Instead it executes `CODEBOT_SOLVER_COMMAND` in the worktree with these environment variables:
 
+- `CODEBOT_MODEL`
 - `CODEBOT_ISSUE_NUMBER`
 - `CODEBOT_ISSUE_TITLE`
 - `CODEBOT_ISSUE_BODY`
@@ -92,6 +93,8 @@ The bot does not hardcode one model runtime. Instead it executes `CODEBOT_SOLVER
 If the solver exits `0`, the bot inspects git for changes and continues. Any non-zero exit code marks the attempt as failed.
 
 The default local solver script is [`scripts/solve-issue.js`](/Users/sh/Work/tutory/tutoryCodeBot/scripts/solve-issue.js). It uses the local `@openai/codex` CLI if installed in `node_modules`, otherwise it falls back to `codex` from `PATH`.
+
+By default the bot uses `CODEBOT_MODEL=gpt-5.4`. Change that in [.env](/Users/sh/Work/tutory/tutoryCodeBot/.env) if you want a different Codex model.
 
 Runtime artifacts are stored under `.codebot/` by default:
 

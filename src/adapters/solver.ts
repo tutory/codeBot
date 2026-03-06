@@ -12,6 +12,7 @@ export class SolverRunner {
     repoPath: string;
     branchName: string;
     issue: Issue;
+    model: string;
     reviewComments?: readonly ReviewComment[];
     action?: "solve" | "reorganize";
   }): void {
@@ -24,6 +25,7 @@ export class SolverRunner {
         CODEBOT_WORKSPACE_PATH: this.commandCwd,
         CODEBOT_REPO_PATH: input.repoPath,
         CODEBOT_BRANCH_NAME: input.branchName,
+        CODEBOT_MODEL: input.model,
         CODEBOT_ISSUE_NUMBER: String(input.issue.number),
         CODEBOT_ISSUE_TITLE: input.issue.title,
         CODEBOT_ISSUE_BODY: input.issue.body,
