@@ -36,12 +36,28 @@ type PullCommentPayload = {
 
 type CheckRunsPayload = {
   check_runs?: Array<{
+    id: number;
     name: string;
     status?: string;
     conclusion?: string | null;
     html_url?: string | null;
+    output?: {
+      title?: string | null;
+      summary?: string | null;
+      text?: string | null;
+    } | null;
   }>;
 };
+
+type CheckRunAnnotationsPayload = Array<{
+  path?: string;
+  start_line?: number;
+  end_line?: number;
+  annotation_level?: string;
+  message?: string;
+  title?: string | null;
+  raw_details?: string | null;
+}>;
 
 type StatusPayload = {
   statuses?: Array<{
@@ -276,8 +292,49 @@ export class GitHubClient {
       for (const checkRun of checkRunsPayload.check_runs ?? []) {
         const conclusion = checkRun.conclusion ?? "";
         if (["failure", "timed_out", "cancelled", "startup_failure", "action_required"].includes(conclusion)) {
+          const parts = [
+            checkRun.name,
+            checkRun.output?.title ?? "",
+            checkRun.output?.summary ?? "",
+            checkRun.output?.text ?? "",
+          ]
+            .map((part) => part.trim())
+            .filter(Boolean);
+          let annotationLines: string[] = [];
+          try {
+            const annotations = await this.request<CheckRunAnnotationsPayload>(
+              "GET",
+              `/check-runs/${checkRun.id}/annotations?per_page=100`
+            );
+            annotationLines = annotations
+              .map((annotation) => {
+                const location = annotation.path
+                  ? `${annotation.path}:${annotation.start_line ?? annotation.end_line ?? "?"}`
+                  : "";
+                const detailParts = [
+                  annotation.annotation_level ?? "",
+                  annotation.title ?? "",
+                  annotation.message ?? "",
+                  annotation.raw_details ?? "",
+                ]
+                  .map((part) => part.trim())
+                  .filter(Boolean);
+                return [location, ...detailParts].filter(Boolean).join(" | ").trim();
+              })
+              .filter(Boolean)
+              .slice(0, 20);
+          } catch (error) {
+            if (!isHttpStatusError(error, 403)) {
+              throw error;
+            }
+          }
+          const formatted = [...parts, ...annotationLines]
+            .join("\n")
+            .trim();
           failures.add(
-            checkRun.html_url ? `${checkRun.name}: ${checkRun.html_url}` : checkRun.name
+            checkRun.html_url
+              ? `${formatted}\n${checkRun.html_url}`.trim()
+              : formatted || checkRun.name
           );
         }
       }
