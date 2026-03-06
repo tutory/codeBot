@@ -56,6 +56,25 @@ Or continuous polling:
 node dist/cli.js loop
 ```
 
+## GitHub token permissions
+
+For a fine-grained GitHub token, grant at least these repository permissions:
+
+- `Metadata: Read`
+- `Contents: Read and write`
+- `Issues: Read`
+- `Pull requests: Read and write`
+- `Checks: Read`
+- `Commit statuses: Read`
+
+Why these are needed:
+
+- `Issues: Read` for issue pickup and issue detail fetches
+- `Pull requests: Read and write` for PR creation, PR body updates, and PR comment inspection
+- `Contents: Read and write` so the pushed branch can be updated through normal git authentication
+- `Checks: Read` and `Commit statuses: Read` for reacting to failing PR checks
+- `Metadata: Read` as the baseline repository scope
+
 ## Solver contract
 
 The bot does not hardcode one model runtime. Instead it executes `CODEBOT_SOLVER_COMMAND` in the worktree with these environment variables:
